@@ -1,0 +1,28 @@
+# Python & Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3-journal
+*.log
+
+# Environments
+.env
+.venv/
+venv/
+env/
+ENV/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Node / Frontend build artifacts (future-proof)
+node_modules/
+dist/
+build/
+.cache/
+
+# AI Workspace Memory (Private)
+.ai-memory/

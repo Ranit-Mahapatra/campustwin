@@ -580,17 +580,21 @@ document.querySelectorAll(".alert-item").forEach(item=>{
   });
 });
 
-/* Make simulation results clearly show the selected intervention. */
+/* Make simulation results clearly show the selected intervention if summary elements exist. */
 const originalRun=document.getElementById("run-sim").onclick;
 document.getElementById("run-sim").onclick=()=>{
   if(originalRun) originalRun();
   const labels={trees:"Plant trees",shade:"Shade structures",traffic:"Reduce traffic",roof:"Cool roofs"};
   const z=zones.find(x=>x.code===ss.value), f=intensity.value/100;
   const factors={trees:[4,18],shade:[3,10],traffic:[2,22],roof:[3,5]}[intervention];
-  document.getElementById("sim-intervention").textContent=labels[intervention];
-  document.getElementById("sim-intensity").textContent=intensity.value+"%";
-  document.getElementById("sim-drop-temp").textContent="−"+(f*factors[0]).toFixed(1)+"°C";
-  document.getElementById("sim-drop-pm").textContent="−"+Math.round(f*factors[1])+" µg/m³";
+  const elIntervention=document.getElementById("sim-intervention");
+  const elIntensity=document.getElementById("sim-intensity");
+  const elDropTemp=document.getElementById("sim-drop-temp");
+  const elDropPm=document.getElementById("sim-drop-pm");
+  if(elIntervention) elIntervention.textContent=labels[intervention];
+  if(elIntensity) elIntensity.textContent=intensity.value+"%";
+  if(elDropTemp) elDropTemp.textContent="−"+(f*factors[0]).toFixed(1)+"°C";
+  if(elDropPm) elDropPm.textContent="−"+Math.round(f*factors[1])+" µg/m³";
 };
 </script>
 
