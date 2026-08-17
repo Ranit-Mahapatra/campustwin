@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CampusTwin — ITER Urban Digital Twin</title>
+<link rel="preconnect" href="https://unpkg.com">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root {
+  --bg:#eef5f7; --panel:#ffffff; --panel2:#f4f8f9; --line:#d6e3e8;
+  --text:#1e3945; --muted:#6e838d; --cyan:#087f76; --blue:#3478c8;
+  --green:#4ade80; --yellow:#f5b942; --red:#ef4444; --orange:#fb923c;
+}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:14px Inter,Segoe UI,Arial,sans-serif}
+button,select,input{font:inherit} button{cursor:pointer}
+.app{min-height:100vh;display:grid;grid-template-columns:245px 1fr 330px;grid-template-rows:70px 1fr}
+header{grid-column:1/-1;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:#ffffff}
+.brand{display:flex;gap:12px;align-items:center} .logo{width:40px;height:40px;border:1px solid #2c9f96;border-radius:10px;display:grid;place-items:center;color:var(--cyan);font-weight:800}
+h1{font-size:17px;margin:0} .sub{font-size:11px;color:var(--muted);margin-top:3px}
+.live{display:flex;align-items:center;gap:7px;color:var(--green);font-weight:700;font-size:12px} .dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 12px var(--green)}
+aside.left{border-right:1px solid var(--line);padding:18px 13px;background:#f7fafb}
+.nav-title{color:#637c8b;font-size:10px;letter-spacing:1.5px;margin:4px 9px 10px}
+.nav button{width:100%;background:transparent;border:0;color:#58717c;text-align:left;padding:12px 10px;border-radius:8px;margin-bottom:3px}
+.nav button.active,.nav button:hover{background:#102733;color:var(--cyan)}
+.legend{margin-top:22px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#ffffff}
+.legend div{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin:8px 0} .key{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px}
+main{position:relative;min-width:0;overflow:hidden} #map{height:100%;min-height:650px;background:#e8f0f3}
+.map-tools{
+  position:absolute;z-index:805;top:18px;left:18px;
+  display:flex;gap:7px;flex-wrap:wrap;max-width:calc(100% - 36px);
+  padding:5px;background:rgba(255,255,255,.96);
+  border:1px solid #d0dfe5;border-radius:10px;
+  box-shadow:0 6px 18px rgba(35,72,86,.08);
+  backdrop-filter:blur(8px);
+}
+.map-tools button{
+  background:#f7fafb;color:#4b6672;border:1px solid #cbdbe1;
+  padding:8px 12px;border-radius:7px;min-height:34px;font-size:10px;
+}
+.map-tools button.active{border-color:var(--cyan);color:var(--cyan);background:#e7f6f3}
+.metrics{
+  position:absolute;z-index:800;top:174px;left:18px;right:18px;
+  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;
+  pointer-events:none;
+}
+.metric{
+  min-height:68px;background:rgba(255,255,255,.96);
+  border:1px solid #d6e3e8;border-radius:10px;padding:11px 13px;
+  display:flex;flex-direction:column;justify-content:center;
+  box-shadow:0 6px 18px rgba(35,72,86,.07);
+}
+.metric .label{font-size:9px;color:#718891;letter-spacing:1.3px}
+.metric .value{font-size:22px;font-weight:800;margin-top:7px;line-height:1}
+.unit{font-size:10px;color:var(--muted);font-weight:500}
+.right{border-left:1px solid var(--line);background:#f7fafb;overflow:auto;padding:15px}
+.section{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:13px;margin-bottom:12px}
+.section h2{font-size:12px;margin:0 0 11px;text-transform:uppercase;letter-spacing:1px;color:#36515e}
+.status{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.badge{padding:4px 7px;border-radius:5px;font-size:10px;font-weight:800} .high{color:#fecaca;background:#431b1b} .mod{color:#fde68a;background:#3a2d0d} .low{color:#bbf7d0;background:#123522}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px} .read{background:var(--panel2);padding:9px;border-radius:7px} .read small{color:var(--muted);display:block;font-size:9px} .read b{font-size:15px;display:block;margin-top:3px}
+select,input[type=range]{width:100%;background:#ffffff;color:#36515e;border:1px solid #c8d9e0;border-radius:6px;padding:8px}
+.action{width:100%;padding:9px;border:1px solid #2c6c72;background:#e7f6f3;color:var(--cyan);border-radius:7px;font-weight:700;margin-top:8px}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:6px} .choice button{padding:8px;background:#ffffff;border:1px solid #cbdbe1;color:#58717c;border-radius:6px;font-size:11px}
+.choice button.active{border-color:var(--cyan);color:var(--cyan);background:#e7f6f3}
+.result{display:none;margin-top:10px;border-top:1px solid var(--line);padding-top:10px} .result.show{display:block}
+.bar{height:6px;background:#dce8ed;border-radius:99px;overflow:hidden;margin-top:6px} .bar i{display:block;height:100%;width:0;background:var(--cyan);transition:.5s}
+.rank{display:flex;gap:9px;align-items:center;padding:9px 0;border-bottom:1px solid #172934} .rank:last-child{border:0}
+.num{width:22px;height:22px;border-radius:6px;background:#e6eef1;display:grid;place-items:center;color:var(--cyan);font-size:10px;font-weight:800}
+.rank .body{flex:1} .rank b{font-size:11px} .rank small{display:block;color:var(--muted);font-size:9px;margin-top:3px}
+.copilot{background:linear-gradient(145deg,#0d252b,#0d1822);border-color:#22545a}
+.chat{height:110px;overflow:auto;color:#536d78;font-size:11px;line-height:1.5;margin-bottom:8px}
+.chat p{margin:0 0 7px} .chat strong{color:var(--cyan)}
+.chatrow{display:flex;gap:5px} .chatrow input{padding:8px}
+.popup{font-family:Inter,Arial,sans-serif;min-width:180px} .popup h3{margin:0 0 7px;font-size:13px} .popup p{margin:4px 0;font-size:11px}
+@media(max-width:1100px){.app{grid-template-columns:200px 1fr}.right{grid-column:1/-1;border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.metrics{top:88px;grid-template-columns:repeat(3,1fr)}}
+@media(max-width:750px){.app{display:block}header{height:65px}aside.left{display:none}.metrics{grid-template-columns:repeat(2,1fr)}.right{display:block}#map{min-height:560px}}
+
+/* Final campus-monitoring controls */
+.campus-search{
+  position:absolute;z-index:806;top:104px;left:18px;width:230px;
+  display:flex;align-items:center;gap:7px;padding:9px 11px;
+  background:#fff;border:1px solid #d2e0e6;border-radius:8px;
+  box-shadow:0 5px 16px rgba(30,70,85,.09)
+}
+.campus-search span{font-size:18px;color:#5f7b87}
+.campus-search input{border:0;outline:0;width:100%;background:transparent;color:#294551;font-size:10px;padding:0}
+.campus-search input::placeholder{color:#8ba0aa}
+.risk-legend{
+  position:absolute;z-index:806;top:104px;right:18px;
+  display:flex;align-items:center;gap:9px;padding:9px 10px;
+  background:rgba(255,255,255,.96);border:1px solid #d2e0e6;border-radius:8px;
+  box-shadow:0 5px 16px rgba(30,70,85,.08);font-size:9px;color:#617984
+}
+.risk-legend b{color:#3d5a65}.risk-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:3px}
+.risk-dot.low{background:#58a979}.risk-dot.moderate{background:#d6ad43}.risk-dot.high{background:#e78048}.risk-dot.critical{background:#d65d5d}
+.section-title-row,.trend-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.section-title-row span,.trend-peak{font-size:8px;color:#81959e}
+.alert-item{display:flex;align-items:center;gap:9px;padding:8px 9px;margin-top:6px;border:1px solid #dce7eb;border-radius:8px;background:#fff;cursor:pointer}
+.alert-icon{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-weight:800;font-size:10px;flex:0 0 auto}
+.alert-icon.critical{background:#fff0ed;color:#d46b52}.alert-icon.warning{background:#fff7e3;color:#b18728}.alert-icon.traffic{background:#eaf3fb;color:#4d7eb4}
+.alert-item b{display:block;font-size:9px;color:#31515d}.alert-item small{display:block;font-size:8px;color:#7b9099;margin-top:2px}
+.trend-section{background:#fff}
+.trend-head h2{margin:0}
+.trend-range,.trend-controls{display:flex;gap:6px;margin-top:8px;overflow-x:auto}
+.range-btn,.trend-btn{flex:1;min-width:68px;padding:7px 6px;border-radius:7px;border:1px solid #d3e1e6;background:#f7fafb;color:#58717c;font-size:8px;cursor:pointer}
+.range-btn.active,.trend-btn.active{background:#e7f6f3;color:#087f76;border-color:#8ccdc5;font-weight:700}
+.trend-labels{display:flex;justify-content:space-between;gap:8px;margin-top:9px;font-size:8px;color:#6d838d}
+.trend-labels span:first-child{color:#345966;font-weight:700}
+.trend-chart{height:190px;margin-top:7px;padding:7px 3px 2px;border:1px solid #e0eaee;border-radius:8px;background:#fbfdfe}
+.trend-chart canvas{width:100%!important;height:100%!important}
+.trend-stats{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:5px;margin-top:6px}
+.trend-stats span{padding:6px 4px;border-radius:6px;background:#f4f8f9;border:1px solid #e0eaee;font-size:7px;color:#6d838d;text-align:center}
+.trend-note{margin-top:6px;font-size:7px;line-height:1.4;color:#82969e}
+.sim-summary{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}
+.sim-summary div{padding:7px;background:#f5fafb;border:1px solid #dbe7eb;border-radius:7px}
+.sim-summary small{display:block;font-size:7px;color:#78909a}.sim-summary b{display:block;font-size:11px;color:#1f5562;margin-top:3px}
+.zone-picker-label{font-size:8px;color:#81959e;letter-spacing:.8px;margin:2px 0 5px;font-weight:700}
+#zone-select{margin-bottom:9px;font-size:10px;padding:9px 10px;border-radius:8px}
+.zone-current{padding-top:1px}
+.selected-zone-section{padding-bottom:12px}
+@media(max-width:1100px){
+  .metrics{top:174px;grid-template-columns:repeat(3,minmax(0,1fr))}
+  .campus-search{top:104px}.risk-legend{top:104px}
+}
+@media(max-width:750px){
+  .metrics{top:160px;grid-template-columns:repeat(2,minmax(0,1fr));left:10px;right:10px}
+  .map-tools{top:18px;left:10px;right:10px;max-width:none}
+  .campus-search{top:86px;left:10px;right:10px;width:auto}
+  .risk-legend{top:130px;left:10px;right:10px;justify-content:flex-start;overflow-x:auto;white-space:nowrap}
+  #map{min-height:620px}
+  .trend-chart{height:180px}
+  .trend-stats{grid-template-columns:1fr 1fr}.trend-stats span:first-child{grid-column:1/-1}
+}
+@media(max-width:430px){
+  .map-tools button{padding:7px 9px;font-size:9px}
+  .metrics{top:160px}
+  .risk-legend{gap:7px;font-size:8px}
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="brand"><div class="logo">CT</div><div><h1>CampusTwin</h1><div class="sub">ITER • SOA — Environmental Monitoring & Decision Support</div></div></div>
+  <div class="live"><span class="dot"></span> CAMPUS MONITOR <span style="color:#5d7180">|</span> 20 zones · 5 road segments</div>
+</header>
+
+<aside class="left">
+  <div class="nav-title">TWIN MODULES</div>
+  <div class="nav">
+    <button class="active" data-layer="all">◉ Overview</button>
+    <button data-layer="air">◉ Air Quality</button>
+    <button data-layer="traffic">◉ Traffic & Streets</button>
+    <button data-layer="heat">◉ Urban Heat</button>
+    <button data-layer="green">◉ Green Cover</button>
+    <button data-layer="emergency">◉ Emergency</button>
+  </div>
+  <div class="legend">
+    <div><span><i class="key" style="background:#4ade80"></i>Good / Low</span><b>SAFE</b></div>
+    <div><span><i class="key" style="background:#f5b942"></i>Moderate</span><b>WATCH</b></div>
+    <div><span><i class="key" style="background:#ef4444"></i>High / Severe</span><b>ALERT</b></div>
+  </div>
+  <div class="section" style="margin-top:12px">
+    <h2>Data confidence</h2>
+    <div style="font-size:11px;color:#6e838d;line-height:1.5">Solid marker border = sensor-backed reading. Dashed border = modeled/estimated reading, matching your original prototype.</div>
+  </div>
+</aside>
+
+<main>
+  <div class="metrics">
+    <div class="metric"><div class="label">AVG TEMP</div><div class="value" id="m-temp">—</div></div>
+    <div class="metric"><div class="label">MAX PM2.5</div><div class="value" id="m-pm">—</div></div>
+    <div class="metric"><div class="label">TRAFFIC</div><div class="value" id="m-traffic">HIGH</div></div>
+    <div class="metric"><div class="label">GREEN COVER</div><div class="value" id="m-green">—</div></div>
+    <div class="metric"><div class="label">RISK ZONES</div><div class="value" id="m-risk">—</div></div>
+  </div>
+  <div class="map-tools">
+    <button class="active" data-map="campus">Campus</button>
+    <button data-map="roads">Streets</button>
+    <button data-map="risk">Risk Heatmap</button>
+    <button data-map="routes">Emergency Routes</button>
+  </div>
+
+<div class="campus-search">
+  <span>⌕</span>
+  <input id="zone-search" placeholder="Search campus area..." aria-label="Search campus area">
+</div>
+<div class="risk-legend">
+  <b>Risk</b>
+  <span><i class="risk-dot low"></i>Low</span>
+  <span><i class="risk-dot moderate"></i>Moderate</span>
+  <span><i class="risk-dot high"></i>High</span>
+  <span><i class="risk-dot critical"></i>Critical</span>
+</div>
+
+  <div id="map"></div>
+</main>
+
+<section class="right">
+
+  <div class="section trend-section">
+    <div class="trend-head">
+      <h2>Time-Based Urban Trend</h2>
+      <span class="trend-peak" id="trend-peak">Peak: —</span>
+    </div>
+    <div class="trend-range">
+      <button class="range-btn active" data-range="24h">24 Hours</button>
+      <button class="range-btn" data-range="7d">7 Days</button>
+    </div>
+    <div class="trend-controls">
+      <button class="trend-btn active" data-metric="aqi">AQI</button>
+      <button class="trend-btn" data-metric="temp">Temperature</button>
+      <button class="trend-btn" data-metric="traffic">Traffic</button>
+      <button class="trend-btn" data-metric="pm25">PM2.5</button>
+    </div>
+    <div class="trend-labels">
+      <span id="trend-title">AQI · 24-hour pattern</span>
+      <span id="trend-average">Avg: —</span>
+    </div>
+    <div class="trend-chart"><canvas id="trendChart"></canvas></div>
+    <div class="trend-stats">
+      <span id="trend-mode">● Modeled trend</span>
+      <span id="trend-change">Change: —</span>
+      <span id="trend-low">Lowest: —</span>
+    </div>
+    <div class="trend-note">Modeled environmental pattern for campus decision support. Backend sensor/API data can replace these values later.</div>
+  </div>
+
+  <div class="section selected-zone-section">
+    <div class="section-title-row">
+      <h2>Selected Zone</h2>
+      <span id="zone-count">20 areas</span>
+    </div>
+
+    <div class="zone-picker-label">CHANGE CAMPUS AREA</div>
+    <select id="zone-select" aria-label="Select campus area"></select>
+
+    <div class="zone-current">
+      <div class="status">
+        <div>
+          <b id="sel-name">ITER Main Gate</b>
+          <div style="color:#718895;font-size:10px" id="sel-code">Z-18</div>
+        </div>
+        <span class="badge mod" id="sel-risk">MODERATE</span>
+      </div>
+
+      <div class="grid2">
+        <div class="read"><small>TEMPERATURE</small><b id="sel-temp">36°C</b></div>
+        <div class="read"><small>PM2.5</small><b id="sel-pm">83</b></div>
+        <div class="read"><small>TREE COVER</small><b id="sel-tree">14%</b></div>
+        <div class="read"><small>VULNERABILITY</small><b id="sel-vuln">10/10</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Street Intelligence</h2>
+    <select id="road-select"></select>
+    <div class="grid2" style="margin-top:8px">
+      <div class="read"><small>TRAFFIC</small><b id="road-traffic">—</b></div>
+      <div class="read"><small>AVG SPEED</small><b id="road-speed">—</b></div>
+      <div class="read"><small>NOISE</small><b id="road-noise">—</b></div>
+      <div class="read"><small>RISK</small><b id="road-risk">—</b></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>What-if Simulation</h2>
+    <select id="sim-zone"></select>
+    <div style="font-size:10px;color:#718895;margin:10px 0 5px">INTERVENTION</div>
+    <div class="choice">
+      <button class="active" data-type="trees">🌳 Plant trees</button>
+      <button data-type="shade">☂ Shade structures</button>
+      <button data-type="traffic">🚗 Reduce traffic</button>
+      <button data-type="roof">🏢 Cool roofs</button>
+    </div>
+    <div style="font-size:10px;color:#718895;margin-top:10px">INTENSITY <b id="intensity-out">50%</b></div>
+    <input id="intensity" type="range" min="10" max="100" value="50">
+    <button class="action" id="run-sim">RUN DIGITAL-TWIN SIMULATION</button>
+    <div class="result" id="sim-result">
+      <div class="grid2">
+        <div class="read"><small>SIM TEMP</small><b id="sim-temp">—</b></div>
+        <div class="read"><small>SIM PM2.5</small><b id="sim-pm">—</b></div>
+      </div>
+      <div style="font-size:10px;color:#6e838d;margin-top:8px">Temperature impact</div><div class="bar"><i id="temp-bar"></i></div>
+      <div style="font-size:10px;color:#6e838d;margin-top:8px">Air-quality impact</div><div class="bar"><i id="pm-bar"></i></div>
+    </div>
+  </div>
+
+
+  <div class="section">
+    <div class="section-title-row"><h2>Campus Alerts</h2><span>Today</span></div>
+    <div class="alert-item" data-alert-zone="Z-11"><span class="alert-icon critical">!</span><div><b>High heat detected</b><small>Girls' Hostel · 40°C</small></div></div>
+    <div class="alert-item" data-alert-zone="Z-02"><span class="alert-icon warning">●</span><div><b>Poor air quality</b><small>Parking Lot · PM2.5 114</small></div></div>
+    <div class="alert-item" data-alert-road="R-01"><span class="alert-icon traffic">↗</span><div><b>Traffic congestion</b><small>Main Gate Road · 86%</small></div></div>
+  </div>
+
+  <div class="section">
+    <h2>Priority Intervention Zones</h2>
+    <div id="priority"></div>
+  </div>
+
+  <div class="section copilot">
+    <h2>Campus Copilot</h2>
+    <div class="chat" id="chat">
+      <p><strong>CampusTwin:</strong> Ask me about traffic, air quality, heat, vulnerable zones or simulations.</p>
+      <p><strong>Try:</strong> “Which area needs trees?”</p>
+    </div>
+    <div class="chatrow"><input id="question" placeholder="Ask CampusTwin…"><button class="action" style="width:auto;margin:0" id="ask">Ask</button></div>
+  </div>
+
+  <div class="section">
+    <h2>Emergency Mode</h2>
+    <select id="emergency-type">
+      <option>Medical emergency</option><option>Road blockage</option><option>Fire response</option><option>Flood response</option>
+    </select>
+    <button class="action" id="emergency-btn">SHOW SAFEST ROUTE</button>
+  </div>
+</section>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const zones = [
+    { code: "Z-01", name: "Health Care Center", lat: 20.248564, lng: 85.801532, temp: 33, pm25: 52, aqi: "Good", confidence: "sensor", vulnerability: 6, treeCover: 25, reason: "Well shaded, low exposure", image: "" },
+    { code: "Z-02", name: "Parking Lot", lat: 20.249637, lng: 85.800384, temp: 38, pm25: 114, aqi: "Severe", confidence: "sensor", vulnerability: 10, treeCover: 7, reason: "Dense occupancy, near-zero canopy", image: "" },
+    { code: "Z-03", name: "Punjab National Bank", lat: 20.248738, lng: 85.801605, temp: 37, pm25: 86, aqi: "Moderate", confidence: "estimate", vulnerability: 10, treeCover: 11, reason: "Mixed shade, moderate footfall", image: "" },
+    { code: "Z-04", name: "BCA/MCA Department", lat: 20.248535, lng: 85.800425, temp: 33, pm25: 63, aqi: "Good", confidence: "sensor", vulnerability: 6, treeCover: 30, reason: "Well shaded, low exposure", image: "" },
+    { code: "Z-05", name: "Administrative Block (B Block)", lat: 20.249755, lng: 85.80204, temp: 34, pm25: 51, aqi: "Moderate", confidence: "sensor", vulnerability: 7, treeCover: 22, reason: "Mixed shade, moderate footfall", image: "" },
+    { code: "Z-06", name: "Central Library", lat: 20.248145, lng: 85.802286, temp: 29, pm25: 40, aqi: "Good", confidence: "estimate", vulnerability: 2, treeCover: 52, reason: "Well shaded, low exposure", image: "" },
+    { code: "Z-07", name: "Center of Data Science (CDS Block)", lat: 20.24942, lng: 85.801369, temp: 35, pm25: 53, aqi: "Moderate", confidence: "sensor", vulnerability: 8, treeCover: 27, reason: "Mixed shade, moderate footfall", image: "" },
+    { code: "Z-08", name: "Bansuri Guru Auditorium", lat: 20.24983, lng: 85.801269, temp: 35, pm25: 70, aqi: "Moderate", confidence: "sensor", vulnerability: 8, treeCover: 24, reason: "Mixed shade, moderate footfall", image: "" },
+    { code: "Z-09", name: "F Block", lat: 20.250344, lng: 85.800293, temp: 32, pm25: 51, aqi: "Good", confidence: "estimate", vulnerability: 5, treeCover: 28, reason: "Well shaded, low exposure", image: "" },
+    { code: "Z-10", name: "S Block", lat: 20.249776, lng: 85.800993, temp: 34, pm25: 61, aqi: "Moderate", confidence: "sensor", vulnerability: 7, treeCover: 27, reason: "Mixed shade, moderate footfall", image: "" },
+    { code: "Z-11", name: "ITER Girls' Hostel", lat: 20.248372, lng: 85.801636, temp: 40, pm25: 101, aqi: "Severe", confidence: "sensor", vulnerability: 10, treeCover: 12, reason: "Dense occupancy, near-zero canopy", image: "" },
+    { code: "Z-12", name: "ITER Boys' Hostel", lat: 20.249255, lng: 85.801125, temp: 39, pm25: 94, aqi: "Severe", confidence: "estimate", vulnerability: 10, treeCover: 5, reason: "Dense occupancy, near-zero canopy", image: "" },
+    { code: "Z-13", name: "Sports Complex Block", lat: 20.248728, lng: 85.800167, temp: 35, pm25: 61, aqi: "Moderate", confidence: "sensor", vulnerability: 8, treeCover: 25, reason: "Mixed shade, moderate footfall", image: "" },
+    { code: "Z-14", name: "E Block", lat: 20.249073, lng: 85.801334, temp: 35, pm25: 66, aqi: "Good", confidence: "sensor", vulnerability: 8, treeCover: 20, reason: "Well shaded, low exposure", image: "" },
+    { code: "Z-15", name: "Garden", lat: 20.249984, lng: 85.801979, temp: 28, pm25: 35, aqi: "Good", confidence: "estimate", vulnerability: 1, treeCover: 52, reason: "Well shaded, low exposure", image: "" },
+    { code: "Z-16", name: "Outdoor Cricket Turf", lat: 20.25009, lng: 85.80038, temp: 36, pm25: 59, aqi: "Moderate", confidence: "sensor", vulnerability: 9, treeCover: 19, reason: "Mixed shade, moderate footfall", image: "" },
+    { code: "Z-17", name: "Cafeteria", lat: 20.249827, lng: 85.801576, temp: 38, pm25: 94, aqi: "Severe", confidence: "sensor", vulnerability: 10, treeCover: 9, reason: "Dense occupancy, near-zero canopy", image: "" },
+    { code: "Z-18", name: "ITER Main Gate", lat: 20.249881, lng: 85.801412, temp: 36, pm25: 83, aqi: "Moderate", confidence: "estimate", vulnerability: 10, treeCover: 14, reason: "Mixed shade, moderate footfall", image: "" },
+    { code: "Z-19", name: "C Block", lat: 20.248479, lng: 85.800335, temp: 34, pm25: 45, aqi: "Moderate", confidence: "sensor", vulnerability: 7, treeCover: 26, reason: "Mixed shade, moderate footfall", image: "" },
+    { code: "Z-20", name: "A Block", lat: 20.248372, lng: 85.801789, temp: 33, pm25: 58, aqi: "Moderate", confidence: "sensor", vulnerability: 6, treeCover: 25, reason: "Mixed shade, moderate footfall", image: "" }
+  ];
+
+const roads = [
+  {id:"R-01", name:"Main Gate Road", from:"ITER Main Gate", to:"Parking Lot", traffic:86, speed:18, noise:72, risk:"HIGH"},
+  {id:"R-02", name:"Academic Road", from:"A Block", to:"CDS Block", traffic:61, speed:27, noise:64, risk:"MODERATE"},
+  {id:"R-03", name:"Hostel Road", from:"Girls' Hostel", to:"Boys' Hostel", traffic:73, speed:22, noise:69, risk:"HIGH"},
+  {id:"R-04", name:"Library Road", from:"Central Library", to:"Garden", traffic:34, speed:35, noise:51, risk:"LOW"},
+  {id:"R-05", name:"Sports Road", from:"Sports Complex", to:"Cricket Turf", traffic:48, speed:31, noise:57, risk:"MODERATE"}
+];
+
+
+const roadCoords = {
+ "R-01":[[20.249881,85.801412],[20.249637,85.800384]],
+ "R-02":[[20.248372,85.801789],[20.24942,85.801369],[20.24983,85.801269]],
+ "R-03":[[20.248372,85.801636],[20.249255,85.801125]],
+ "R-04":[[20.248145,85.802286],[20.249984,85.801979]],
+ "R-05":[[20.248728,85.800167],[20.25009,85.80038]]
+};
+
+const map = L.map('map').setView([20.2493289,85.8011446],17);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap &copy; CARTO',subdomains:'abcd',maxZoom:20}).addTo(map);
+
+const zoneLayer=L.layerGroup().addTo(map), roadLayer=L.layerGroup().addTo(map), riskLayer=L.layerGroup(), routeLayer=L.layerGroup();
+const markers={};
+function aqiColor(a){return {Good:'#4ade80',Moderate:'#f5b942',Poor:'#fb923c',Severe:'#ef4444'}[a]||'#8b93a7'}
+
+zones.forEach(z=>{
+  const mk=L.circleMarker([z.lat,z.lng],{radius:10,fillColor:aqiColor(z.aqi),color:z.confidence==='sensor'?'#fff':aqiColor(z.aqi),weight:z.confidence==='sensor'?2:1.5,dashArray:z.confidence==='estimate'?'3,3':null,fillOpacity:.9});
+  mk.bindPopup(`<div class="popup"><h3>${z.name}</h3><p><b>Zone:</b> ${z.code}</p><p><b>Temp:</b> ${z.temp}°C</p><p><b>PM2.5:</b> ${z.pm25}</p><p><b>Canopy:</b> ${z.treeCover}%</p><p><b>Vulnerability:</b> ${z.vulnerability}/10</p><p><b>Source:</b> ${z.confidence==='sensor'?'Live sensor':'Satellite/model estimate'}</p></div>`);
+  mk.on('click',()=>selectZone(z)); mk.addTo(zoneLayer); markers[z.code]=mk;
+  if(z.vulnerability>=8) L.circle([z.lat,z.lng],{radius:45,color:'#ef4444',weight:1,fillOpacity:.08}).addTo(riskLayer);
+});
+
+roads.forEach(r=>{
+  const col=r.risk==='HIGH'?'#ef4444':r.risk==='MODERATE'?'#f5b942':'#4ade80';
+  const line=L.polyline(roadCoords[r.id],{color:col,weight:7,opacity:.8});
+  line.bindPopup(`<div class="popup"><h3>${r.name}</h3><p>Traffic: <b>${r.traffic}%</b></p><p>Speed: <b>${r.speed} km/h</b></p><p>Noise: <b>${r.noise} dB</b></p><p>Risk: <b>${r.risk}</b></p></div>`);
+  line.on('click',()=>selectRoad(r)); line.addTo(roadLayer);
+});
+
+function selectZone(z){
+  document.getElementById('sel-name').textContent=z.name; document.getElementById('sel-code').textContent=z.code;
+  document.getElementById('sel-risk').textContent=z.aqi.toUpperCase();
+  document.getElementById('sel-risk').className='badge '+(z.aqi==='Severe'?'high':z.aqi==='Moderate'?'mod':'low');
+  document.getElementById('sel-temp').textContent=z.temp+'°C'; document.getElementById('sel-pm').textContent=z.pm25;
+  document.getElementById('sel-tree').textContent=z.treeCover+'%'; document.getElementById('sel-vuln').textContent=z.vulnerability+'/10';
+  document.getElementById('sim-zone').value=z.code;
+  if(document.getElementById('zone-select')) document.getElementById('zone-select').value=z.code;
+}
+function selectRoad(r){
+  document.getElementById('road-select').value=r.id; updateRoad();
+}
+
+/* Selected Zone area switcher */
+const zoneSelect = document.getElementById('zone-select');
+if(zoneSelect){
+  zones.forEach(z=>{
+    const o=document.createElement('option');
+    o.value=z.code;
+    o.textContent=z.code+' — '+z.name;
+    zoneSelect.appendChild(o);
+  });
+
+  zoneSelect.addEventListener('change',()=>{
+    const z=zones.find(x=>x.code===zoneSelect.value);
+    if(z){
+      selectZone(z);
+      map.setView([z.lat,z.lng],18);
+      if(markers[z.code]) markers[z.code].openPopup();
+    }
+  });
+}
+const rs=document.getElementById('road-select'); roads.forEach(r=>{let o=document.createElement('option');o.value=r.id;o.textContent=r.id+' — '+r.name;rs.appendChild(o)}); 
+function updateRoad(){const r=roads.find(x=>x.id===rs.value);document.getElementById('road-traffic').textContent=r.traffic+'%';document.getElementById('road-speed').textContent=r.speed+' km/h';document.getElementById('road-noise').textContent=r.noise+' dB';document.getElementById('road-risk').textContent=r.risk}
+rs.onchange=updateRoad; updateRoad();
+
+const ss=document.getElementById('sim-zone'); zones.forEach(z=>{let o=document.createElement('option');o.value=z.code;o.textContent=z.code+' — '+z.name;ss.appendChild(o)});
+let intervention='trees'; document.querySelectorAll('.choice button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.choice button').forEach(x=>x.classList.remove('active'));b.classList.add('active');intervention=b.dataset.type});
+const intensity=document.getElementById('intensity'); intensity.oninput=()=>document.getElementById('intensity-out').textContent=intensity.value+'%';
+document.getElementById('run-sim').onclick=()=>{
+  const z=zones.find(x=>x.code===ss.value), f=intensity.value/100;
+  const factors={trees:[4,18],shade:[3,10],traffic:[2,22],roof:[3,5]}[intervention];
+  const tempDrop=f*factors[0], pmDrop=Math.round(f*factors[1]);
+  document.getElementById('sim-temp').textContent=Math.max(20,z.temp-tempDrop).toFixed(1)+'°C';
+  document.getElementById('sim-pm').textContent=Math.max(5,z.pm25-pmDrop);
+  document.getElementById('temp-bar').style.width=Math.min(100,tempDrop*15)+'%';
+  document.getElementById('pm-bar').style.width=Math.min(100,pmDrop*2)+'%';
+  document.getElementById('sim-result').classList.add('show');
+};
+
+const ranked=[...zones].sort((a,b)=>b.vulnerability-a.vulnerability).slice(0,6);
+document.getElementById('priority').innerHTML=ranked.map((z,i)=>`<div class="rank"><div class="num">${i+1}</div><div class="body"><b>${z.code} — ${z.name}</b><small>${z.reason}</small></div><b style="color:${z.vulnerability>=8?'#ef4444':'#f5b942'}">${z.vulnerability}/10</b></div>`).join('');
+
+const avgTemp=zones.reduce((s,z)=>s+z.temp,0)/zones.length, maxPm=Math.max(...zones.map(z=>z.pm25)), avgGreen=zones.reduce((s,z)=>s+z.treeCover,0)/zones.length, risk=zones.filter(z=>z.vulnerability>=8).length;
+document.getElementById('m-temp').innerHTML=avgTemp.toFixed(1)+' <span class="unit">°C</span>';
+document.getElementById('m-pm').innerHTML=maxPm+' <span class="unit">µg/m³</span>';
+document.getElementById('m-green').innerHTML=avgGreen.toFixed(0)+' <span class="unit">%</span>';
+document.getElementById('m-risk').innerHTML=risk+' <span class="unit">flagged</span>';
+
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+ const l=b.dataset.layer;
+ if(l==='air'||l==='heat'||l==='green'){zoneLayer.addTo(map);roadLayer.removeFrom(map);}
+ else if(l==='traffic'){roadLayer.addTo(map);zoneLayer.removeFrom(map);}
+ else if(l==='emergency'){zoneLayer.removeFrom(map);roadLayer.addTo(map);routeLayer.addTo(map);}
+ else {zoneLayer.addTo(map);roadLayer.addTo(map);}
+});
+document.querySelectorAll('[data-map]').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('[data-map]').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+ const v=b.dataset.map;
+ if(v==='campus'){zoneLayer.addTo(map);roadLayer.addTo(map);riskLayer.removeFrom(map);routeLayer.removeFrom(map)}
+ if(v==='roads'){zoneLayer.removeFrom(map);roadLayer.addTo(map);riskLayer.removeFrom(map);routeLayer.removeFrom(map)}
+ if(v==='risk'){zoneLayer.addTo(map);riskLayer.addTo(map);roadLayer.addTo(map);routeLayer.removeFrom(map)}
+ if(v==='routes'){zoneLayer.addTo(map);roadLayer.addTo(map);routeLayer.addTo(map);showRoute()}
+});
+
+function showRoute(){
+ routeLayer.clearLayers();
+ L.polyline([[20.249881,85.801412],[20.24942,85.801369],[20.248145,85.802286]],{color:'#5de2d0',weight:9,opacity:.9}).addTo(routeLayer);
+ L.circleMarker([20.249881,85.801412],{radius:7,color:'#fff',fillColor:'#ef4444',fillOpacity:1}).bindTooltip('INCIDENT').addTo(routeLayer);
+ L.circleMarker([20.248145,85.802286],{radius:7,color:'#fff',fillColor:'#4ade80',fillOpacity:1}).bindTooltip('SAFE DESTINATION').addTo(routeLayer);
+}
+document.getElementById('emergency-btn').onclick=()=>{showRoute();document.querySelector('[data-map="routes"]').click()};
+
+function answer(q){
+ q=q.toLowerCase(); let ans='';
+ if(q.includes('tree')||q.includes('green')){let z=[...zones].sort((a,b)=>a.treeCover-b.treeCover)[0];ans=`The priority area for green intervention is <b>${z.name}</b> with ${z.treeCover}% tree cover and vulnerability ${z.vulnerability}/10.`}
+ else if(q.includes('air')||q.includes('pollution')||q.includes('pm')){let z=[...zones].sort((a,b)=>b.pm25-a.pm25)[0];ans=`The highest PM2.5 zone is <b>${z.name}</b> at ${z.pm25} µg/m³.`}
+ else if(q.includes('risk')||q.includes('vulner')){let z=[...zones].sort((a,b)=>b.vulnerability-a.vulnerability)[0];ans=`The highest vulnerability score is <b>${z.name}</b> at ${z.vulnerability}/10.`}
+ else if(q.includes('traffic')||q.includes('road')){let r=[...roads].sort((a,b)=>b.traffic-a.traffic)[0];ans=`The busiest modeled road is <b>${r.name}</b> with traffic intensity ${r.traffic}%.`}
+ else if(q.includes('temperature')||q.includes('heat')){let z=[...zones].sort((a,b)=>b.temp-a.temp)[0];ans=`The hottest modeled zone is <b>${z.name}</b> at ${z.temp}°C.`}
+ else ans=`I can analyze <b>air quality, traffic, heat, green cover, risk</b> and the current what-if simulation.`;
+ document.getElementById('chat').innerHTML+=`<p><strong>You:</strong> ${q}</p><p><strong>CampusTwin:</strong> ${ans}</p>`;document.getElementById('chat').scrollTop=99999;
+}
+document.getElementById('ask').onclick=()=>{const q=document.getElementById('question').value.trim();if(q){answer(q);document.getElementById('question').value=''}};
+document.getElementById('question').onkeydown=e=>{if(e.key==='Enter')document.getElementById('ask').click()};
+selectZone(zones.find(z=>z.code==='Z-18')||zones[0]);
+if(document.getElementById('zone-select')) document.getElementById('zone-select').value='Z-18';
+</script>
+
+<script>
+/* ---------- Final frontend interactions ---------- */
+const trendData={
+  "24h":{
+    labels:["6 AM","8 AM","10 AM","12 PM","2 PM","4 PM","6 PM","8 PM","10 PM","12 AM"],
+    aqi:[72,86,104,121,138,126,112,96,84,76],
+    temp:[24,26,29,32,35,34,31,28,26,25],
+    traffic:[18,42,61,78,88,72,58,36,24,16],
+    pm25:[34,41,48,59,67,61,54,46,39,35]
+  },
+  "7d":{
+    labels:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+    aqi:[94,101,108,116,103,88,82],
+    temp:[31,32,33,35,34,30,29],
+    traffic:[62,68,73,81,76,45,34],
+    pm25:[46,51,55,61,53,42,39]
+  }
+};
+const trendInfo={
+  aqi:{label:"AQI",unit:"",color:"#16877d"},
+  temp:{label:"Temperature",unit:"°C",color:"#d5794d"},
+  traffic:{label:"Traffic",unit:"%",color:"#5d83bd"},
+  pm25:{label:"PM2.5",unit:" µg/m³",color:"#8a6aae"}
+};
+let trendRange="24h",trendMetric="aqi",trendChart=null;
+
+function renderTrend(){
+  if(typeof Chart==="undefined") return;
+  const d=trendData[trendRange], info=trendInfo[trendMetric], values=d[trendMetric];
+  const peak=Math.max(...values), peakIndex=values.indexOf(peak), low=Math.min(...values);
+  const avg=values.reduce((a,b)=>a+b,0)/values.length;
+  const change=((values[values.length-1]-values[0])/values[0])*100;
+
+  document.getElementById("trend-title").textContent=info.label+" · "+(trendRange==="24h"?"24-hour pattern":"7-day pattern");
+  document.getElementById("trend-peak").textContent="Peak: "+peak+info.unit+" · "+d.labels[peakIndex];
+  document.getElementById("trend-average").textContent="Avg: "+avg.toFixed(1)+info.unit;
+  document.getElementById("trend-change").textContent="Change: "+(change>=0?"+":"")+change.toFixed(1)+"%";
+  document.getElementById("trend-low").textContent="Lowest: "+low+info.unit;
+
+  if(trendChart) trendChart.destroy();
+  trendChart=new Chart(document.getElementById("trendChart"),{
+    type:"line",
+    data:{labels:d.labels,datasets:[{
+      label:info.label,data:values,borderColor:info.color,
+      backgroundColor:"rgba(8,127,118,.07)",borderWidth:2.3,
+      pointRadius:trendRange==="24h"?2.5:3,pointHoverRadius:5,tension:.35,fill:true
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>info.label+": "+c.parsed.y+info.unit}}},
+      scales:{
+        x:{grid:{display:false},ticks:{color:"#78909b",font:{size:8},maxRotation:0}},
+        y:{grid:{color:"rgba(180,200,208,.28)"},ticks:{color:"#78909b",font:{size:8}}}
+      }
+    }
+  });
+}
+document.querySelectorAll(".range-btn").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".range-btn").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active"); trendRange=b.dataset.range; renderTrend();
+});
+document.querySelectorAll(".trend-btn").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".trend-btn").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active"); trendMetric=b.dataset.metric; renderTrend();
+});
+renderTrend();
+
+/* Campus-area search: filters map markers by actual zone names. */
+const zoneSearch=document.getElementById("zone-search");
+if(zoneSearch){
+  zoneSearch.addEventListener("input",()=>{
+    const q=zoneSearch.value.trim().toLowerCase();
+    zones.forEach(z=>{
+      const marker=markers[z.code];
+      if(marker && marker._path){
+        marker._path.style.opacity=(!q || z.name.toLowerCase().includes(q) || z.code.toLowerCase().includes(q))?"1":"0.18";
+      }
+    });
+  });
+}
+
+/* Alerts open the relevant zone/road. */
+document.querySelectorAll(".alert-item").forEach(item=>{
+  item.addEventListener("click",()=>{
+    if(item.dataset.alertZone){
+      const z=zones.find(x=>x.code===item.dataset.alertZone);
+      if(z){selectZone(z);map.setView([z.lat,z.lng],18);markers[z.code].openPopup();}
+    }
+    if(item.dataset.alertRoad){
+      const r=roads.find(x=>x.id===item.dataset.alertRoad);
+      if(r){selectRoad(r);roadLayer.addTo(map);}
+    }
+  });
+});
+
+/* Make simulation results clearly show the selected intervention. */
+const originalRun=document.getElementById("run-sim").onclick;
+document.getElementById("run-sim").onclick=()=>{
+  if(originalRun) originalRun();
+  const labels={trees:"Plant trees",shade:"Shade structures",traffic:"Reduce traffic",roof:"Cool roofs"};
+  const z=zones.find(x=>x.code===ss.value), f=intensity.value/100;
+  const factors={trees:[4,18],shade:[3,10],traffic:[2,22],roof:[3,5]}[intervention];
+  document.getElementById("sim-intervention").textContent=labels[intervention];
+  document.getElementById("sim-intensity").textContent=intensity.value+"%";
+  document.getElementById("sim-drop-temp").textContent="−"+(f*factors[0]).toFixed(1)+"°C";
+  document.getElementById("sim-drop-pm").textContent="−"+Math.round(f*factors[1])+" µg/m³";
+};
+</script>
+
+</body>
+</html>
