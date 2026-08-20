@@ -2,7 +2,7 @@
 
 **Updated:** 2026-08-20  
 **Current branch:** `feat/ranit-backend`  
-**Current project state:** Backend environment initialized on Ranit branch; APIs verified live; validation gate PASS (exit 0); project memory established; ready to commit intentionally staged files.
+**Current project state:** Backend environment initialized on Ranit branch; APIs verified live; validation gate PASS (exit 0); project memory established; committed as `ec34e3e` on `feat/ranit-backend` (not pushed).
 
 ## WHERE ARE WE?
 Initial Ranit backend / repository-governance pass after inspecting the real CampusTwin codebase on `feat/ranit-backend` (branched from `main` @ `2c7de3e`).
@@ -52,7 +52,7 @@ See CHANGELOG.md and git diff for this session.
 - Missing `gh` blocks live GitHub security/PR inspection
 
 ## WHAT IS THE NEXT EXACT ACTION?
-Run `scripts/validate-before-commit.ps1`, fix any FAIL, then commit intentionally staged files with message `chore: initialize Ranit backend and repository environment` if required checks PASS.
+Fix local SSL trust (ISS-001), then `git push -u origin feat/ranit-backend` and open a PR into `main` after installing/authenticating `gh` (or via GitHub UI). Do not force-push.
 
 ## WHAT MUST NOT BE DONE?
 - Force-push / history rewrite on shared branches

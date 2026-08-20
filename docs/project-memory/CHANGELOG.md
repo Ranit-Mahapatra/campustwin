@@ -11,4 +11,4 @@
   - Local pre-commit hook
   - `docs/project-memory/` eight-file memory set
   - Backend launcher scripts prefer local `venv` Python
-- **Validation result:** Recorded in `VALIDATION_STATUS.md` after gate run (do not assume PASS without execution)
+- **Validation result:** Local gate PASS (exit 0) on commit `ec34e3e` via pre-commit hook. Non-PASS non-blocking items: Integration REQUIRES REVIEW; Dependency scan REQUIRES REVIEW (SSL); Lint NOT CONFIGURED; CI MISSING.
