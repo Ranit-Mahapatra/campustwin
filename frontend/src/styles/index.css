@@ -1,0 +1,59 @@
+@import './layout.css';
+@import './views.css';
+
+:root {
+  --bg: #eef5f7;
+  --panel: #ffffff;
+  --panel2: #f4f8f9;
+  --line: #d6e3e8;
+  --text: #1e3945;
+  --muted: #6e838d;
+  --cyan: #087f76;
+  --blue: #3478c8;
+  --green: #4ade80;
+  --yellow: #f5b942;
+  --red: #ef4444;
+  --orange: #fb923c;
+  --dark-bg: #102733;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button, select, input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--panel2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}

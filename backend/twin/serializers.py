@@ -1,28 +1,39 @@
 from rest_framework import serializers
-from .models import Zone, RoadSegment
+from .models import Zone, RoadSegment, SimulationLog
+
 
 class ZoneSerializer(serializers.ModelSerializer):
-    treeCover = serializers.IntegerField(source='tree_cover')
-
     class Meta:
         model = Zone
         fields = [
-            'id', 'code', 'name', 'lat', 'lng',
-            'temp', 'pm25', 'aqi', 'confidence',
-            'vulnerability', 'treeCover', 'reason'
+            'id', 'code', 'name', 'temp', 'pm25',
+            'aqi', 'vulnerability', 'tree_cover', 'lat', 'lng'
         ]
 
-class RoadSegmentSerializer(serializers.ModelSerializer):
-    id = serializers.CharField(source='road_id')
 
+class RoadSegmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = RoadSegment
-        fields = ['id', 'name', 'from_point', 'to_point', 'traffic', 'speed', 'noise', 'risk', 'coordinates']
+        fields = ['id', 'name', 'traffic', 'speed', 'noise', 'risk']
+
+
+class SimulationLogSerializer(serializers.ModelSerializer):
+    zone_code = serializers.CharField(source='zone.code', read_only=True)
+    zone_name = serializers.CharField(source='zone.name', read_only=True)
+
+    class Meta:
+        model = SimulationLog
+        fields = [
+            'id', 'zone_code', 'zone_name', 'intervention',
+            'intensity', 'simulated_temp', 'simulated_pm25', 'created_at'
+        ]
+
 
 class SimulationInputSerializer(serializers.Serializer):
-    zone_code = serializers.CharField(max_length=10)
-    intervention = serializers.ChoiceField(choices=['trees', 'shade', 'traffic', 'roof'])
-    intensity = serializers.IntegerField(min_value=10, max_value=100)
+    zone_code = serializers.CharField(max_length=20)
+    intervention = serializers.CharField(max_length=50)
+    intensity = serializers.IntegerField(min_value=0, max_value=100, default=50)
+
 
 class CopilotQuerySerializer(serializers.Serializer):
-    question = serializers.CharField(max_length=300)
+    question = serializers.CharField()

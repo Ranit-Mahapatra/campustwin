@@ -5,12 +5,22 @@ __pycache__/
 *.sqlite3-journal
 *.log
 
-# Environments
+# Environments / secrets
 .env
+.env.*
+!.env.example
 .venv/
 venv/
 env/
 ENV/
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+service-account*.json
+credentials*.json
+secrets/
 
 # IDE & OS
 .vscode/
@@ -24,5 +34,13 @@ dist/
 build/
 .cache/
 
-# AI Workspace Memory (Private)
+# AI / project private memory (LOCAL ONLY — never commit)
 .ai-memory/
+.project-memory-private/
+
+# Local tooling
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
