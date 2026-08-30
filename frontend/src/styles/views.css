@@ -1,0 +1,240 @@
+/* View Shell Layout & Card Styles */
+.view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.view-title-group h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text);
+}
+
+.view-title-group p {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 4px 0 0;
+}
+
+.view-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Card & Panels */
+.panel-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 4px 14px rgba(35, 72, 86, 0.04);
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.panel-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #36515e;
+  font-weight: 700;
+  margin: 0 0 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Grids */
+.view-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.view-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.view-grid-sidebar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: 16px;
+}
+
+/* Telemetry Mini-Reads */
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.telemetry-read {
+  background: var(--panel2);
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e0eaee;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.telemetry-read small {
+  color: var(--muted);
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+}
+
+.telemetry-read b {
+  font-size: 16px;
+  font-weight: 800;
+  display: block;
+  margin-top: 4px;
+  color: var(--text);
+}
+
+/* Badges */
+.badge-pill {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-low {
+  color: #166534;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+}
+
+.badge-mod {
+  color: #854d0e;
+  background: #fef9c3;
+  border: 1px solid #fef08a;
+}
+
+.badge-high {
+  color: #991b1b;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+}
+
+/* Action Buttons */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border: 1px solid #2c6c72;
+  background: #e7f6f3;
+  color: var(--cyan);
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+
+.btn-primary:hover {
+  background: #d1f0eb;
+  border-color: #21595e;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid #cbdbe1;
+  background: #ffffff;
+  color: #4b6672;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: #f4f8f9;
+  color: #1e3945;
+}
+
+.btn-secondary.active {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  background: #e7f6f3;
+  font-weight: 700;
+}
+
+/* Search input */
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #cbdbe1;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.search-box input {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 12px;
+  width: 100%;
+  color: var(--text);
+}
+
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1100px) {
+  .dashboard-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .view-grid-sidebar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .view-grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .view-grid-2, .view-grid-3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .telemetry-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+}
+
+@media (max-width: 420px) {
+  .telemetry-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

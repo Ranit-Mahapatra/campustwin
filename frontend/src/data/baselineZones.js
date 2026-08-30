@@ -1,0 +1,22 @@
+export const baselineZones = [
+  { code: "Z-01", name: "Health Care Center", lat: 20.248564, lng: 85.801532, temp: 33, pm25: 52, aqi: "Good", confidence: "sensor", vulnerability: 6, treeCover: 25, reason: "Well shaded, low exposure", image: "" },
+  { code: "Z-02", name: "Parking Lot", lat: 20.249637, lng: 85.800384, temp: 38, pm25: 114, aqi: "Severe", confidence: "sensor", vulnerability: 10, treeCover: 7, reason: "Dense occupancy, near-zero canopy", image: "" },
+  { code: "Z-03", name: "Punjab National Bank", lat: 20.248738, lng: 85.801605, temp: 37, pm25: 86, aqi: "Moderate", confidence: "estimate", vulnerability: 10, treeCover: 11, reason: "Mixed shade, moderate footfall", image: "" },
+  { code: "Z-04", name: "BCA/MCA Department", lat: 20.248535, lng: 85.800425, temp: 33, pm25: 63, aqi: "Good", confidence: "sensor", vulnerability: 6, treeCover: 30, reason: "Well shaded, low exposure", image: "" },
+  { code: "Z-05", name: "Administrative Block (B Block)", lat: 20.249755, lng: 85.80204, temp: 34, pm25: 51, aqi: "Moderate", confidence: "sensor", vulnerability: 7, treeCover: 22, reason: "Mixed shade, moderate footfall", image: "" },
+  { code: "Z-06", name: "Central Library", lat: 20.248145, lng: 85.802286, temp: 29, pm25: 40, aqi: "Good", confidence: "estimate", vulnerability: 2, treeCover: 52, reason: "Well shaded, low exposure", image: "" },
+  { code: "Z-07", name: "Center of Data Science (CDS Block)", lat: 20.24942, lng: 85.801369, temp: 35, pm25: 53, aqi: "Moderate", confidence: "sensor", vulnerability: 8, treeCover: 27, reason: "Mixed shade, moderate footfall", image: "" },
+  { code: "Z-08", name: "Bansuri Guru Auditorium", lat: 20.24983, lng: 85.801269, temp: 35, pm25: 70, aqi: "Moderate", confidence: "sensor", vulnerability: 8, treeCover: 24, reason: "Mixed shade, moderate footfall", image: "" },
+  { code: "Z-09", name: "F Block", lat: 20.250344, lng: 85.800293, temp: 32, pm25: 51, aqi: "Good", confidence: "estimate", vulnerability: 5, treeCover: 28, reason: "Well shaded, low exposure", image: "" },
+  { code: "Z-10", name: "S Block", lat: 20.249776, lng: 85.800993, temp: 34, pm25: 61, aqi: "Moderate", confidence: "sensor", vulnerability: 7, treeCover: 27, reason: "Mixed shade, moderate footfall", image: "" },
+  { code: "Z-11", name: "ITER Girls' Hostel", lat: 20.248372, lng: 85.801636, temp: 40, pm25: 101, aqi: "Severe", confidence: "sensor", vulnerability: 10, treeCover: 12, reason: "Dense occupancy, near-zero canopy", image: "" },
+  { code: "Z-12", name: "ITER Boys' Hostel", lat: 20.249255, lng: 85.801125, temp: 39, pm25: 94, aqi: "Severe", confidence: "estimate", vulnerability: 10, treeCover: 5, reason: "Dense occupancy, near-zero canopy", image: "" },
+  { code: "Z-13", name: "Sports Complex Block", lat: 20.248728, lng: 85.800167, temp: 35, pm25: 61, aqi: "Moderate", confidence: "sensor", vulnerability: 8, treeCover: 25, reason: "Mixed shade, moderate footfall", image: "" },
+  { code: "Z-14", name: "E Block", lat: 20.249073, lng: 85.801334, temp: 35, pm25: 66, aqi: "Good", confidence: "sensor", vulnerability: 8, treeCover: 20, reason: "Well shaded, low exposure", image: "" },
+  { code: "Z-15", name: "Garden", lat: 20.249984, lng: 85.801979, temp: 28, pm25: 35, aqi: "Good", confidence: "estimate", vulnerability: 1, treeCover: 52, reason: "Well shaded, low exposure", image: "" },
+  { code: "Z-16", name: "Outdoor Cricket Turf", lat: 20.25009, lng: 85.80038, temp: 36, pm25: 59, aqi: "Moderate", confidence: "sensor", vulnerability: 9, treeCover: 19, reason: "Mixed shade, moderate footfall", image: "" },
+  { code: "Z-17", name: "Cafeteria", lat: 20.249827, lng: 85.801576, temp: 38, pm25: 94, aqi: "Severe", confidence: "sensor", vulnerability: 10, treeCover: 9, reason: "Dense occupancy, near-zero canopy", image: "" },
+  { code: "Z-18", name: "ITER Main Gate", lat: 20.249881, lng: 85.801412, temp: 36, pm25: 83, aqi: "Moderate", confidence: "estimate", vulnerability: 10, treeCover: 14, reason: "Mixed shade, moderate footfall", image: "" },
+  { code: "Z-19", name: "C Block", lat: 20.248479, lng: 85.800335, temp: 34, pm25: 45, aqi: "Moderate", confidence: "sensor", vulnerability: 7, treeCover: 26, reason: "Mixed shade, moderate footfall", image: "" },
+  { code: "Z-20", name: "A Block", lat: 20.248372, lng: 85.801789, temp: 33, pm25: 58, aqi: "Moderate", confidence: "sensor", vulnerability: 6, treeCover: 25, reason: "Mixed shade, moderate footfall", image: "" }
+];
