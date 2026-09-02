@@ -1,4 +1,11 @@
-# CampusTwin Backend Dependencies (SOA IDEATHON 2026 - Problem Statement S18)
-Django>=5.0,<6.1
-djangorestframework>=3.14.0
-django-cors-headers>=4.0.0
+asgiref==3.11.1
+Django==6.0.2
+django-cors-headers==4.9.0
+djangorestframework==3.16.1
+python-decouple==3.8
+pyyaml==6.0.3
+sqlparse==0.5.5
+tzdata==2025.3
+uritemplate==4.2.0
+gunicorn==23.0.0
+whitenoise==6.9.0
