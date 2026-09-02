@@ -1,5 +1,5 @@
 class MicroclimateEngine:
-    """Core physics and simulation engine for campus interventions."""
+    """Core physics and heuristic calculations for campus interventions."""
 
     COEFFICIENTS = {
         'trees': {'temp': 0.04, 'pm': 0.35},
@@ -65,3 +65,31 @@ class DecisionSupportEngine:
             })
 
         return recommendations
+
+
+class AirQualityEngine:
+    """Calculates official AQI bands and detects rapid sensor rate-of-change spikes."""
+
+    @staticmethod
+    def calculate_aqi(pm25):
+        """Maps PM2.5 (ug/m3) to standard National Air Quality Index (NAQI) categories."""
+        if pm25 <= 30:
+            return "Good"
+        elif pm25 <= 60:
+            return "Satisfactory"
+        elif pm25 <= 90:
+            return "Moderate"
+        elif pm25 <= 120:
+            return "Poor"
+        elif pm25 <= 250:
+            return "Very Poor"
+        return "Severe"
+
+    @staticmethod
+    def evaluate_sudden_change(current_val, previous_val, threshold=15.0):
+        """Flags abrupt telemetry surges indicating localized fire, emissions, or sensor faults."""
+        if previous_val is None:
+            return False, 0.0
+        delta = round(current_val - previous_val, 1)
+        is_spike = delta >= threshold
+        return is_spike, delta

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { baselineZones } from '../data/baselineZones';
 import { baselineRoads } from '../data/baselineRoads';
 import { useZonesQuery, useRoadsQuery } from '../hooks/useCampusApi';
@@ -26,28 +26,15 @@ export const CAMPUS_REGISTRY = {
   }
 };
 
-// 1. Campus 2 Offline Fallback (With treeCover + canopy keys populated)
-const campus2FallbackZones = [
-  { id: 101, code: "C2-01", name: "IMS Main Hospital Block", temp: 33.8, pm25: 62, aqi: "Moderate", vulnerability: 7, tree_cover: 22, treeCover: 22, canopy: 22, lat: 20.2615, lng: 85.7835, confidence: "modeled", reason: "Hospital emergency ward and patient transit zone" },
-  { id: 102, code: "C2-02", name: "Dental College Quad", temp: 34.5, pm25: 68, aqi: "Moderate", vulnerability: 8, tree_cover: 18, treeCover: 18, canopy: 18, lat: 20.2608, lng: 85.7828, confidence: "modeled", reason: "Academic quad with moderate asphalt coverage" },
-  { id: 103, code: "C2-03", name: "Hostel Sector C", temp: 35.6, pm25: 78, aqi: "Moderate", vulnerability: 9, tree_cover: 14, treeCover: 14, canopy: 14, lat: 20.2621, lng: 85.7842, confidence: "modeled", reason: "Residential quarter with canopy deficit" },
-  { id: 104, code: "C2-04", name: "Emergency Transit Boulevard", temp: 36.2, pm25: 84, aqi: "Poor", vulnerability: 9, tree_cover: 10, treeCover: 10, canopy: 10, lat: 20.2600, lng: 85.7820, confidence: "modeled", reason: "Continuous ambulance and vehicular transit" },
-  { id: 105, code: "C2-05", name: "Central Sports Arena", temp: 32.5, pm25: 54, aqi: "Good", vulnerability: 5, tree_cover: 35, treeCover: 35, canopy: 35, lat: 20.2630, lng: 85.7850, confidence: "modeled", reason: "Open turf vegetative microclimate cooling" }
-];
-
-// 2. Smart City Grid (Bhubaneswar Municipal Wards - 10 Sectors)
-const smartCityFallbackZones = [
-  { id: 201, code: "CT-01", name: "Master Canteen Junction", temp: 38.6, pm25: 128, aqi: "Severe", vulnerability: 10, tree_cover: 8, treeCover: 8, canopy: 8, lat: 20.2680, lng: 85.8400, confidence: "modeled", reason: "High vehicular congestion, dense asphalt corridor, zero canopy" },
-  { id: 202, code: "CT-02", name: "Patia Tech Corridor", temp: 36.4, pm25: 94, aqi: "Poor", vulnerability: 8, tree_cover: 15, treeCover: 15, canopy: 15, lat: 20.3540, lng: 85.8180, confidence: "sensor", reason: "Rapid tech-corridor expansion, high commuter transit traffic" },
-  { id: 203, code: "CT-03", name: "Saheed Nagar Commercial Ward", temp: 37.8, pm25: 112, aqi: "Poor", vulnerability: 9, tree_cover: 11, treeCover: 11, canopy: 11, lat: 20.2905, lng: 85.8435, confidence: "modeled", reason: "Concrete density, intense market parking, high heat sink" },
-  { id: 204, code: "CT-04", name: "Rasulgarh Industrial Junction", temp: 39.2, pm25: 142, aqi: "Severe", vulnerability: 10, tree_cover: 6, treeCover: 6, canopy: 6, lat: 20.2995, lng: 85.8670, confidence: "sensor", reason: "National highway crossroads, freight idling, low vegetation" },
-  { id: 205, code: "CT-05", name: "Ekamra Kanan Botanical Reserve", temp: 31.4, pm25: 38, aqi: "Good", vulnerability: 3, tree_cover: 72, treeCover: 72, canopy: 72, lat: 20.3010, lng: 85.8080, confidence: "sensor", reason: "Protected biodiversity reserve, high natural evapotranspiration cooling" },
-  { id: 206, code: "CT-06", name: "Chandrasekharpur Hub", temp: 34.6, pm25: 76, aqi: "Moderate", vulnerability: 6, tree_cover: 28, treeCover: 28, canopy: 28, lat: 20.3250, lng: 85.8120, confidence: "modeled", reason: "Planned residential layout with peripheral avenue tree canopy" },
-  { id: 207, code: "CT-07", name: "Jaydev Vihar Interchange", temp: 37.5, pm25: 108, aqi: "Poor", vulnerability: 9, tree_cover: 10, treeCover: 10, canopy: 10, lat: 20.3005, lng: 85.8235, confidence: "modeled", reason: "Flyover concrete thermal sink, heavy traffic bottleneck" },
-  { id: 208, code: "CT-08", name: "Khandagiri Heritage Perimeter", temp: 33.9, pm25: 64, aqi: "Moderate", vulnerability: 5, tree_cover: 36, treeCover: 36, canopy: 36, lat: 20.2580, lng: 85.7860, confidence: "modeled", reason: "Natural rocky elevations with peripheral forestry buffers" },
-  { id: 209, code: "CT-09", name: "Mancheswar Industrial Sector", temp: 38.9, pm25: 135, aqi: "Severe", vulnerability: 10, tree_cover: 7, treeCover: 7, canopy: 7, lat: 20.3340, lng: 85.8520, confidence: "modeled", reason: "Heavy rail manufacturing and logistics depot emissions" },
-  { id: 210, code: "CT-10", name: "Old Town Heritage Zone", temp: 35.1, pm25: 78, aqi: "Moderate", vulnerability: 7, tree_cover: 24, treeCover: 24, canopy: 24, lat: 20.2390, lng: 85.8340, confidence: "modeled", reason: "Historic sandstone temple cluster with medium pedestrian density" }
-];
+// Official National Air Quality Index (NAQI) dynamic calculator
+export function calculateDynamicAqi(pm25) {
+  if (pm25 <= 30) return { label: 'Good', color: '#10b981', level: 1 };
+  if (pm25 <= 60) return { label: 'Satisfactory', color: '#34d399', level: 2 };
+  if (pm25 <= 90) return { label: 'Moderate', color: '#f59e0b', level: 3 };
+  if (pm25 <= 120) return { label: 'Poor', color: '#f97316', level: 4 };
+  if (pm25 <= 250) return { label: 'Very Poor', color: '#ef4444', level: 5 };
+  return { label: 'Severe', color: '#7f1d1d', level: 6 };
+}
 
 export function CampusProvider({ children }) {
   const { data: apiZones, isSuccess: isZonesSuccess } = useZonesQuery();
@@ -66,79 +53,116 @@ export function CampusProvider({ children }) {
   const [activeMapLayer, setActiveMapLayer] = useState('campus');
   const [activeModuleLayer, setActiveModuleLayer] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Real-time IoT Streaming and Spike Alert State
+  const [isIotActive, setIsIotActive] = useState(true);
+  const [lastSpikeEvent, setLastSpikeEvent] = useState(null);
   const [activeAlert, setActiveAlert] = useState(null);
+  const prevReadingsRef = useRef({});
 
-  // Exact normalizer prioritizing Smart City Grid
   const normalizeCampusKey = (val) => {
     if (!val) return 'soa_iter';
     const str = String(val).toLowerCase();
-    if (str.includes('city') || str.includes('smart')) return 'smart_city';
     if (str.includes('2')) return 'soa_campus_2';
+    if (str.includes('city') || str.includes('smart')) return 'smart_city';
     return 'soa_iter';
   };
 
   const switchCampus = useCallback(async (newCampusRaw) => {
     const campusKey = normalizeCampusKey(newCampusRaw);
     setSelectedCampusState(campusKey);
-
     const config = CAMPUS_REGISTRY[campusKey] || CAMPUS_REGISTRY.soa_iter;
     setMapCenter(config.center);
     setMapZoom(config.zoom);
 
-    // Instant UI Fallback so the map and markers update with 0ms delay
-    if (campusKey === 'smart_city') {
-      setZones(smartCityFallbackZones);
-      setSelectedZone(smartCityFallbackZones[0]);
-    } else if (campusKey === 'soa_campus_2') {
-      setZones(campus2FallbackZones);
-      setSelectedZone(campus2FallbackZones[0]);
-    } else {
-      setZones(baselineZones);
-      setSelectedZone(baselineZones.find((z) => z.code === 'Z-18') || baselineZones[0]);
-    }
-
-    // Backend sync
     try {
       const res = await fetch(`http://127.0.0.1:8000/api/zones/?campus=${campusKey}`);
       if (res.ok) {
         const data = await res.json();
         const zonesList = Array.isArray(data) ? data : data.results || [];
         if (zonesList.length > 0) {
-          // Normalize canopy keys so undefined% is eliminated permanently
-          const normalized = zonesList.map((z) => {
-            const val = z.tree_cover ?? z.treeCover ?? z.canopy ?? 20;
-            return { ...z, tree_cover: val, treeCover: val, canopy: val };
-          });
-          setZones(normalized);
-          setSelectedZone(normalized[0]);
+          setZones(zonesList);
+          setSelectedZone(zonesList[0]);
         }
       }
     } catch (err) {
-      console.warn("Backend campus fetch fallback:", err);
+      console.warn("Backend campus switch fallback:", err);
     }
   }, []);
 
-  const setSelectedCampus = (val) => {
-    switchCampus(val);
+  // Poll live IoT background telemetry from Django
+  useEffect(() => {
+    if (!isIotActive) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:8000/api/zones/');
+        if (res.ok) {
+          const liveData = await res.json();
+          const zonesList = Array.isArray(liveData) ? liveData : liveData.results || [];
+
+          if (zonesList.length > 0) {
+            // Check for sudden rate-of-change spikes (delta >= 15.0 µg/m³)
+            zonesList.forEach((zone) => {
+              const prev = prevReadingsRef.current[zone.code];
+              if (prev !== undefined) {
+                const delta = zone.pm25 - prev;
+                if (delta >= 15) {
+                  const spikeInfo = {
+                    zoneCode: zone.code,
+                    zoneName: zone.name,
+                    delta: delta,
+                    currentPm: zone.pm25,
+                    timestamp: new Date().toLocaleTimeString(),
+                  };
+                  setLastSpikeEvent(spikeInfo);
+                  setActiveAlert(`⚠️ CRITICAL SPIKE: ${zone.name} surged +${delta} µg/m³ PM2.5`);
+                }
+              }
+              prevReadingsRef.current[zone.code] = zone.pm25;
+            });
+
+            setZones(zonesList);
+            setSelectedZone((prev) => zonesList.find((z) => z.code === prev?.code) || zonesList[0]);
+          }
+        }
+      } catch (e) {
+        // Keeps running smoothly offline
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [isIotActive]);
+
+  // Trigger manual sudden AQI spike (for live demonstration)
+  const triggerManualAqiSpike = (targetZoneCode, spikeDelta = 35) => {
+    setZones((currZones) =>
+      currZones.map((z) => {
+        if (z.code === targetZoneCode || (!targetZoneCode && z.code === selectedZone?.code)) {
+          const newPm = z.pm25 + spikeDelta;
+          const newAqiObj = calculateDynamicAqi(newPm);
+          const updated = {
+            ...z,
+            pm25: newPm,
+            aqi: newAqiObj.label,
+            reason: `ALERT: Sudden localized telemetry surge (+${spikeDelta} µg/m³) detected!`,
+            isSpikeActive: true,
+          };
+          setLastSpikeEvent({
+            zoneCode: updated.code,
+            zoneName: updated.name,
+            delta: spikeDelta,
+            currentPm: newPm,
+            timestamp: new Date().toLocaleTimeString(),
+          });
+          setActiveAlert(`⚠️ SUDDEN SURGE: ${updated.name} surged +${spikeDelta} µg/m³!`);
+          setSelectedZone(updated);
+          return updated;
+        }
+        return z;
+      })
+    );
   };
-
-  useEffect(() => {
-    if (selectedCampus === 'soa_iter' && isZonesSuccess && Array.isArray(apiZones) && apiZones.length > 0) {
-      const normalized = apiZones.map((z) => {
-        const val = z.tree_cover ?? z.treeCover ?? z.canopy ?? 20;
-        return { ...z, tree_cover: val, treeCover: val, canopy: val };
-      });
-      setZones(normalized);
-      setSelectedZone((prev) => normalized.find((z) => z.code === prev?.code) || normalized[0]);
-    }
-  }, [apiZones, isZonesSuccess, selectedCampus]);
-
-  useEffect(() => {
-    if (isRoadsSuccess && Array.isArray(apiRoads) && apiRoads.length > 0) {
-      setRoads(apiRoads);
-      setSelectedRoad((prev) => apiRoads.find((r) => r.id === prev?.id) || apiRoads[0]);
-    }
-  }, [apiRoads, isRoadsSuccess]);
 
   const selectZoneByCode = (code) => {
     const found = zones.find((z) => z.code === code);
@@ -152,22 +176,16 @@ export function CampusProvider({ children }) {
 
   const value = {
     selectedCampus,
-    setSelectedCampus,
-    activeCampus: selectedCampus,
-    setActiveCampus: setSelectedCampus,
+    setSelectedCampus: switchCampus,
     switchCampus,
     mapCenter,
-    setMapCenter,
     mapZoom,
-    setMapZoom,
-    campuses: Object.values(CAMPUS_REGISTRY),
     zones,
     setZones,
     selectedZone,
     setSelectedZone,
     selectZoneByCode,
     roads,
-    setRoads,
     selectedRoad,
     setSelectedRoad,
     selectRoadById,
@@ -179,7 +197,11 @@ export function CampusProvider({ children }) {
     setSearchQuery,
     activeAlert,
     setActiveAlert,
-    isLiveApi: isZonesSuccess || isRoadsSuccess
+    isIotActive,
+    setIsIotActive,
+    lastSpikeEvent,
+    triggerManualAqiSpike,
+    isLiveApi: isZonesSuccess || isRoadsSuccess,
   };
 
   return <CampusContext.Provider value={value}>{children}</CampusContext.Provider>;
@@ -187,8 +209,6 @@ export function CampusProvider({ children }) {
 
 export function useCampus() {
   const context = useContext(CampusContext);
-  if (!context) {
-    throw new Error('useCampus must be used within a CampusProvider');
-  }
+  if (!context) throw new Error('useCampus must be used within a CampusProvider');
   return context;
 }
