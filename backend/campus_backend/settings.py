@@ -161,3 +161,17 @@ REST_FRAMEWORK = {
         'user': '1000/day',
     },
 }
+# ==========================================
+# SCALABILITY & HIGH-CONCURRENCY SETTINGS
+# ==========================================
+
+# 1. In-Memory RAM Caching (LocMemCache for sub-5ms aggregations)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'campustwin-inmemory-cache',
+    }
+}
+
+# 2. Database Connection Pooling (Keeps connections alive for 60s)
+DATABASES['default']['CONN_MAX_AGE'] = 60
